@@ -81,8 +81,9 @@ struct linker
   }
 
   linker sl(picture pic = currentpicture,
-	    object obj)
+	    string l)
   {
+    object obj = Label(l);
     real xdegrees = abs(degrees(srcSdir)-degrees(srcLdir));
     if(xdegrees < 90){
       srcSdir = -1 * srcSdir;
@@ -92,16 +93,25 @@ struct linker
   }
 
   linker ml(picture pic = currentpicture,
-	    object obj)
+	    string l, bool stero = true)
   {
+    if(stero)
+      l = " \small $\ll$" + l +"$\gg$";
+    object obj = Label(l);    
     real mt = reltime(this.g ,0.5);
-    put2side(pic,this.g,mt,obj);      
+    pair mdir = dir(this.g,mt);
+    if(mdir.x < 0)
+      mdir = -1*mdir;
+    put2side(pic,this.g,mt,rotate(degrees(mdir))*obj);      
     return this;
   }
+ 
+
 
   linker dl(picture pic = currentpicture,
-	    object obj)
+	    string l)
   {
+    object obj = Label(l);
     real xdegrees = abs(degrees(destSdir)-degrees(destLdir));
     if(xdegrees < 90){
       destSdir = -1 * destSdir;
@@ -126,7 +136,7 @@ struct pending_linker
   void operator init(symbol s)
   {
     this.src = s;
-    g = (s.min()+s.max())/2;
+    this.g = (s.min()+s.max())/2;
   }  
 }
 
@@ -360,20 +370,20 @@ struct mlinker
   }
 
   mlinker sl(picture pic = currentpicture,
-	     object obj)
+	     string l)
   {
     int n = linkers.length;
     if(n >=1)
-      (this.linkers[0]).sl(pic,obj);
+      (this.linkers[0]).sl(pic,l);
     return this;
   }
 
   mlinker dl(picture pic = currentpicture,
-	     object obj)
+	     string l)
   {
     int n = linkers.length;
     for(int i=0; i<n; ++i)
-      this.linkers[i].dl(pic,obj);
+      this.linkers[i].dl(pic,l);
     return this;
   }
 
@@ -391,7 +401,8 @@ mlinker operator ..(pending_linker plk,symbol[] ss)
   linker [] ls = new linker[]{};
   int n = ss.length;
   for(int i=0; i<n; ++i){
-    linker l = plk .. ss[i];
+    pending_linker xplk = copy(plk);
+    linker l = xplk .. ss[i];
     ls.push(l);
   }
   return mlinker(ls);
@@ -402,8 +413,8 @@ mlinker operator ::(pending_linker plk,symbol[] ss)
   linker [] ls = new linker[]{};
   int n = ss.length;
   for(int i=0; i<n; ++i){
-    plk = copy(plk);
-    linker l = plk :: ss[i];
+    pending_linker xplk = copy(plk);
+    linker l = xplk :: ss[i];
     ls.push(l);
   }
   return mlinker(ls);
@@ -414,8 +425,8 @@ mlinker operator --(pending_linker plk,symbol[] ss)
   linker [] ls = new linker[]{};
   int n = ss.length;
   for(int i=0; i<n; ++i){
-    plk = copy(plk);
-    linker l = plk -- ss[i];
+    pending_linker xplk = copy(plk);
+    linker l = xplk -- ss[i];
     ls.push(l);
   }
   return mlinker(ls);
@@ -426,8 +437,8 @@ mlinker operator ---(pending_linker plk,symbol[] ss)
   linker [] ls = new linker[]{};
   int n = ss.length;
   for(int i=0; i<n; ++i){
-    plk = copy(plk);
-    linker l = plk --- ss[i];
+    pending_linker xplk = copy(plk);
+    linker l = xplk --- ss[i];
     ls.push(l);
   }
   return mlinker(ls);

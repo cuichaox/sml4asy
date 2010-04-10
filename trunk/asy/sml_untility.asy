@@ -93,10 +93,11 @@ private void  put2side(picture pic = currentpicture,
   pair endr = begin - sml_setting.max_distance * ndir;
     
   pair leftp = find_pos(g,obj.g,begin,endl);
-  pair rightp = find_pos(g,obj.g,begin,endr);
+  //pair rightp = find_pos(g,obj.g,begin,endr);
 
-  pair xp = leftp;
-  if(length(leftp -bp) >length(rightp -bp))
-    xp = rightp;
-  add(pic,obj,xp);  
+  //pair xp = leftp;
+  //if(length(leftp -bp) >length(rightp -bp))
+  //xp = rightp;
+  //add(pic,obj,xp);
+  add(pic,obj,leftp);
 }
