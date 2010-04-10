@@ -23,7 +23,7 @@ struct T_SYM_SETTING
 
   real nodedepth = 12pt;
 
-  real minnw = 1.8cm;
+  real minnw = 5cm;
   real ncorner = 3mm;
 
   real iballsize = 6bp;
@@ -49,7 +49,7 @@ private struct ruler
 ruler LEFT = ruler(0.0);
 ruler RIGHT = ruler(1.0);
 ruler TOP = ruler(1.0);
-ruler TOE = ruler(1.0);
+ruler TOE = ruler(0.0);
 ruler MID = ruler(0.5);
 
 
@@ -105,25 +105,26 @@ struct symbol{
   bool drawed = false;
   bool docked = false;
 
-  void trans(transform t){
+  symbol trans(transform t){
     this.f = t*this.f;
     this.g = t*this.g;
     int n = sub.length;
     for(int i=0; i<n; ++i){
       sub[i].trans(t);
-    }       
+    }
+    return this;
   }
 
   pair min(){
     if(this.g != nullpath)
-      return min(this.g);
-    return(0,0);
+      return min(this.g);    
+    return min(this.f);
   }
   
   pair max(){
     if(this.g != nullpath)
       return max(this.g);
-    return(0,0);
+    return max(this.f);
   }
 
   void move2c(){
@@ -202,6 +203,14 @@ struct symbol{
     this.sub = new symbol[];
     this.move2c();
   }
+
+  void operator init(string l)
+  {
+    Label(l).out(this.f);
+    this.g=box(min(f),max(f));
+    this.sub = new symbol[];
+    this.move2c();
+  }
   
 }
 
@@ -240,8 +249,54 @@ symbol operator cast(string s)
   return symbol(s);
 }
 
+symbol blank;
 
-symbol blank ;
+struct space
+{
+  real w =1bp;
+  real h =1bp;
+
+  void operator init(real w =1bp,real h =1bp)
+  {
+    this.w = w;
+    this.h = h;
+  }
+
+  void operator init(symbol fs)
+  {
+    pair s = fs.max() - fs.min();
+    this.w = s.x;
+    this.h = s.y;
+  }
+}
+
+space space = space();
+
+space operator* (space sp,real k)
+{
+  sp.h *= k;
+  sp.w *= k;
+  return sp;
+}
+
+space operator* (real k,space sp)
+{
+  return sp*k;
+}
+
+
+symbol operator cast (space sp)
+{
+  symbol ret;
+  pair minp = (-0.5*sp.w, -0.5*sp.h);
+  pair maxp = (0.5*sp.w,0.5*sp.h);
+  ret.g = box(minp,maxp);
+  dot(ret.f,minp,white);
+  dot(ret.f,maxp,white);
+  return ret;    
+}
+
+
 symbol hdock(gapper gap = AVG,
 	     ruler r = TOE
 	     ... symbol[] insect)
@@ -261,8 +316,7 @@ symbol hdock(gapper gap = AVG,
 
     h.push(s.y);
     w.push(s.x);
-  }
-  
+  }  
 
   real xgap = gap.getv(...w);
   pair z = (0,0);
@@ -275,11 +329,8 @@ symbol hdock(gapper gap = AVG,
     insect[i].add(ret.f);
     z += (xgap + (w[i]+w[i+1])/2,0);    
   }
-
-  ret.move2c();
-  
-  ret.g = box(min(ret.f),max(ret.f));
-  
+  ret.g = box(min(ret.f),max(ret.f)); 
+  ret.move2c(); 
   return ret;    
 }
 
@@ -297,7 +348,7 @@ symbol dock(gapper gap = AVG,
 }
 
 symbol vdock(gapper gap = AVG,
-	     ruler r = TOE
+	     ruler r = MID
 	     ... symbol[] insect)
 {
   return dock(gap,r,-90 ... insect);
@@ -440,8 +491,8 @@ symbol mkpack(symbol c = null,string name = " ")
   pair bw = body.max() - body.min();
   bw = bw + 2*(symbol_setting.pxmagin,symbol_setting.pymagin);
 
-  real bwx = (bw.x > 3*hw.x)? bw.x : 3*hw.x;
-  real bwy = (bw.y > 3*hw.y)? bw.y : 3*hw.y;
+  real bwx = (bw.x > 1.6*hw.x)? bw.x : 1.6*hw.x;
+  real bwy = (bw.y > 2*hw.y)? bw.y : 2*hw.y;
 
   real hwx = (hw.x > bw.x/3)? hw.x : bw.x/3;
   real hwy = hw.y;
@@ -537,14 +588,12 @@ symbol mkactor(string name="",bool rand = false,real size = 12pt)
   
   symbol actor;
   draw(actor.f,x);
-  actor.g = box(actor.min(),actor.max());
-
+  actor.g = box(min(actor.f),max(actor.f));
   if(length(name) == 0)
     return actor;
-
   symbol ret;
   ret = vdock(3pt,MID,actor,symbol(name));
-  ret.delsub();
+  ret.delsub();  
   return ret;
 }
 
@@ -580,7 +629,10 @@ symbol mkiball(string name, pair label_dir = S)
   ret.g = scale(symbol_setting.iballsize)*unitcircle;
   draw(ret.f,ret.g);
   real gmargin = length((symbol_setting.gxmagin,symbol_setting.gymagin));
-  pair label_pos = dir(S)*(symbol_setting.iballsize + gmargin);
+  
+  object obj = Label(name);
+  pair xpt = point(obj,label_dir);  
+  pair label_pos = dir(label_dir)*(symbol_setting.iballsize + length(xpt));
   
   label(ret.f,Label(name),label_pos);
   return ret;    

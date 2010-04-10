@@ -94,12 +94,17 @@ realization.p = dashed;
 lstyle rea = realization;
 
 lstyle composition;
-composition.arrow = BeginArrow(comhead,FillDraw(white));
+composition.arrow = BeginArrow(comhead,FillDraw(black));
 lstyle com = composition;
   
 lstyle aggregation;
 aggregation.arrow = BeginArrow(comhead,FillDraw(black));
-lstyle agg = aggregation; 
+lstyle agg = aggregation;
+
+lstyle dashline;
+dashline.p = dashed;
+
+
 
 void req_i(picture pic =currentpicture,
 	   path g,
