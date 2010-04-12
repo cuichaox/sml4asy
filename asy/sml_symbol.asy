@@ -46,26 +46,26 @@ private struct ruler
   }
 }
 
-ruler LEFT = ruler(0.0);
-ruler RIGHT = ruler(1.0);
-ruler TOP = ruler(1.0);
-ruler TOE = ruler(0.0);
-ruler MID = ruler(0.5);
+restricted ruler LEFT = ruler(0.0);
+restricted ruler RIGHT = ruler(1.0);
+restricted ruler TOP = ruler(1.0);
+restricted ruler TOE = ruler(0.0);
+restricted ruler MID = ruler(0.5);
 
 
 
 typedef real gapfun(... real w[]);
 struct gapper
 {
-  real k =1.0;
-  gapfun gf = null;
-  void operator init(gapfun f, real k = 1.0)
+  public real k =1.0;
+  public gapfun gf = null;
+  restricted void operator init(gapfun f, real k = 1.0)
   {
     this.gf =f;
     this.k = k;
   }
   
-  real getv(... real w[])
+  restricted real getv(... real w[])
   {
     return k* gf(...w);
   }  
@@ -81,14 +81,14 @@ private real one(... real w[])
   return 1.0;
 }
 
-gapper operator cast (real r)
+restricted gapper operator cast (real r)
 {
   return gapper(one,r);
 }
 
 public gapper AVG = gapper(avg);
 
-gapper operator * (real r,gapper gap)
+restricted gapper operator * (real r,gapper gap)
 {
   gapper ret;
   ret.k = gap.k*r;
@@ -99,13 +99,13 @@ gapper operator * (real r,gapper gap)
 
 // A Sturcture to hold symbol
 struct symbol{
-  frame f;
-  path g = nullpath; //Bounding path
-  symbol[] sub;
-  bool drawed = false;
-  bool docked = false;
+  public frame f;
+  public path g = nullpath; //Bounding path
+  public symbol[] sub;
+  public bool drawed = false;
+  public bool docked = false;
 
-  symbol trans(transform t){
+  restricted symbol trans(transform t){
     this.f = t*this.f;
     this.g = t*this.g;
     int n = sub.length;
@@ -115,26 +115,26 @@ struct symbol{
     return this;
   }
 
-  pair min(){
+  restricted pair min(){
     if(this.g != nullpath)
       return min(this.g);    
     return min(this.f);
   }
   
-  pair max(){
+  restricted pair max(){
     if(this.g != nullpath)
       return max(this.g);
     return max(this.f);
   }
 
-  void move2c(){
+  restricted void move2c(){
     pair minp = this.min();
     pair maxp = this.max();
     pair c = (minp + maxp)/2;
     this.trans(shift(-1*c));        
   }
 
-  void dotc()
+  restricted void dotc()
   {
     pair minp = this.min();
     pair maxp = this.max();
@@ -142,7 +142,7 @@ struct symbol{
   }
   
 
-  void delsub(){
+  restricted void delsub(){
     int n = sub.length;
     for(int i=0; i<n; ++i)
       sub[i].delsub();
@@ -150,7 +150,7 @@ struct symbol{
   }
     
 
-  void add(frame f){
+  restricted void add(frame f){
     if(empty(this.f))
       return;
     if(this.drawed){
@@ -164,7 +164,7 @@ struct symbol{
      this.docked = true;
   }
 
-  void add(picture dest = currentpicture,
+  restricted void add(picture dest = currentpicture,
 	   bool group = true,
 	   filltype filltype = NoFill,
 	   bool above = true)
@@ -183,28 +183,28 @@ struct symbol{
     
   }
 	   
-  void opterator(object o){
+  restricted void opterator(object o){
     this.f = o.f;
     this.g = o.g;
     this.sub = new symbol[];
     this.move2c();
   }
 
-   void operator init(frame f) {
+   restricted void operator init(frame f) {
     this.f=f;
     this.g=box(min(f),max(f));
     this.sub = new symbol[];
     this.move2c();
   }
 
-  void operator init(Label L) {
+  restricted void operator init(Label L) {
     L.out(this.f);
     this.g=box(min(f),max(f));
     this.sub = new symbol[];
     this.move2c();
   }
 
-  void operator init(string l)
+  restricted void operator init(string l)
   {
     Label(l).out(this.f);
     this.g=box(min(f),max(f));
@@ -214,7 +214,7 @@ struct symbol{
   
 }
 
-symbol copy(symbol s,bool andsub = false)
+restricted symbol copy(symbol s,bool andsub = false)
 {
   symbol ret;
   ret.g = s.g;
@@ -236,7 +236,7 @@ symbol copy(symbol s,bool andsub = false)
     
 }
 
-object operator cast(symbol s)
+restricted object operator cast(symbol s)
 {
   object ret;
   ret.f = s.f;
@@ -244,17 +244,17 @@ object operator cast(symbol s)
   return ret;
 }
 
-symbol operator cast(string s)
+restricted symbol operator cast(string s)
 {
   return symbol(s);
 }
 
-symbol blank;
+restricted symbol blank;
 
 struct space
 {
-  real w =1bp;
-  real h =1bp;
+  public real w =1bp;
+  public real h =1bp;
 
   void operator init(real w =1bp,real h =1bp)
   {
@@ -272,20 +272,20 @@ struct space
 
 space space = space();
 
-space operator* (space sp,real k)
+restricted space operator* (space sp,real k)
 {
   sp.h *= k;
   sp.w *= k;
   return sp;
 }
 
-space operator* (real k,space sp)
+restricted space operator* (real k,space sp)
 {
   return sp*k;
 }
 
 
-symbol operator cast (space sp)
+restricted symbol operator cast (space sp)
 {
   symbol ret;
   pair minp = (-0.5*sp.w, -0.5*sp.h);
@@ -297,7 +297,7 @@ symbol operator cast (space sp)
 }
 
 
-symbol hdock(gapper gap = AVG,
+restricted symbol hdock(gapper gap = AVG,
 	     ruler r = TOE
 	     ... symbol[] insect)
 {
@@ -334,7 +334,7 @@ symbol hdock(gapper gap = AVG,
   return ret;    
 }
 
-symbol dock(gapper gap = AVG,
+restricted symbol dock(gapper gap = AVG,
 	    ruler r = TOE,
 	    real angle = 0.0
 	    ... symbol[] insect)
@@ -347,7 +347,7 @@ symbol dock(gapper gap = AVG,
   return ret;
 }
 
-symbol vdock(gapper gap = AVG,
+restricted symbol vdock(gapper gap = AVG,
 	     ruler r = MID
 	     ... symbol[] insect)
 {
@@ -427,7 +427,7 @@ symbol mkclass(symbol name,          //name
 }
 
 // make a class name part
-symbol mkcname(string name,                  // main name
+restricted symbol mkcname(string name,                  // main name
 	       string stero = "",            // sterotype
 	       bool abst = false)     // is a abstract class
 {
@@ -444,13 +444,13 @@ symbol mkcname(string name,                  // main name
    return symbol(xname);
 }
 
-symbol mkclass(string name)
+restricted symbol mkclass(string name)
 {
   return mkclass(mkcname(name));
 }
 
 //make a class attributes part
-symbol mkattrs(... string[] attrs)
+restricted symbol mkattrs(... string[] attrs)
 {
   symbol attr_symbols[] = new symbol[];
   int n = attrs.length;
@@ -460,10 +460,10 @@ symbol mkattrs(... string[] attrs)
 }
 
 //make a class operation part
-symbol mkopers(... string[] attrs) = mkattrs;
+restricted symbol mkopers(... string[] attrs) = mkattrs;
 
 //make a object symbol
-symbol mkobj(string name,         //object name
+restricted symbol mkobj(string name,         //object name
 	     symbol attrs = blank) //object attributes value list
 {
   symbol head = symbol("\underline{" + name + "}");
@@ -472,7 +472,7 @@ symbol mkobj(string name,         //object name
 
 
 //make a package symbol
-symbol mkpack(symbol c = null,string name = " ")
+restricted symbol mkpack(symbol c = null,string name = " ")
 {
   symbol ret;   
   string xname = "\bf "+name;
@@ -511,7 +511,7 @@ symbol mkpack(symbol c = null,string name = " ")
 }
 
 //make a box symbol
-symbol mkbox(symbol c)
+restricted symbol mkbox(symbol c)
 {
   symbol ret;
   ret.sub.push(c);
@@ -520,7 +520,7 @@ symbol mkbox(symbol c)
   return ret;
 }
 
-symbol mkrbox(symbol c)
+restricted symbol mkrbox(symbol c)
 {
   symbol ret;
   ret.sub.push(c);
@@ -529,7 +529,7 @@ symbol mkrbox(symbol c)
   return ret;
 }
 
-symbol mkellipse(symbol c)
+restricted symbol mkellipse(symbol c)
 {
   symbol ret;
   ret.sub.push(c);
@@ -538,7 +538,7 @@ symbol mkellipse(symbol c)
   return ret;
 }
 
-symbol mkcase(string desc)
+restricted symbol mkcase(string desc)
 {
   symbol ret = mkellipse(symbol(desc));
   ret.delsub();
@@ -546,7 +546,7 @@ symbol mkcase(string desc)
 }
 
 //make a note symbol
-symbol mknote(string s,real w = symbol_setting.minnw)
+restricted symbol mknote(string s,real w = symbol_setting.minnw)
 {
   w = (w > symbol_setting.minnw)? w: symbol_setting.minnw;
   real tw = w - symbol_setting.ncorner - symbol_setting.notexmagin;
@@ -564,7 +564,7 @@ symbol mknote(string s,real w = symbol_setting.minnw)
   return ret;  
 }
 
-symbol mkcircle(symbol c)
+restricted symbol mkcircle(symbol c)
 {
   symbol ret;
   ret.sub.push(c);
@@ -577,7 +577,7 @@ symbol mkcircle(symbol c)
 
 include "sml_actor.asy";
 
-symbol mkactor(string name="",bool rand = false,real size = 12pt)
+restricted symbol mkactor(string name="",bool rand = false,real size = 12pt)
 {
   path[] x = null;
   if(rand){
@@ -597,7 +597,7 @@ symbol mkactor(string name="",bool rand = false,real size = 12pt)
   return ret;
 }
 
-symbol mknode(symbol c)
+restricted symbol mknode(symbol c)
 {
   symbol ret;
   c.add(ret.f);
@@ -623,7 +623,7 @@ symbol mknode(symbol c)
   return ret;
 }
 
-symbol mkiball(string name, pair label_dir = S)
+restricted symbol mkiball(string name, pair label_dir = S)
 {
   symbol ret;
   ret.g = scale(symbol_setting.iballsize)*unitcircle;
@@ -638,7 +638,7 @@ symbol mkiball(string name, pair label_dir = S)
   return ret;    
 }
 
-symbol mkcomicon()
+restricted symbol mkcomicon()
 {
   symbol ret;
   real bw = symbol_setting.comiconw*4/5;
@@ -653,7 +653,7 @@ symbol mkcomicon()
   
 }
 
-symbol mkcom(string name, string stero ="")
+restricted symbol mkcom(string name, string stero ="")
 {  
   symbol left= mkcname(name,stero);
   symbol right = mkcomicon();

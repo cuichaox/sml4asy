@@ -24,7 +24,7 @@ typedef void linker_drawer(picture pic =currentpicture,
  */
 typedef path arrowfun(pair b, pair e);
 
-arrowhead mkarrowhead(arrowfun af, real minsize)
+restricted arrowhead mkarrowhead(arrowfun af, real minsize)
 {
   arrowhead xhead;
   xhead.head=new path(path g, position position=EndPoint, pen p=currentpen,
@@ -50,14 +50,14 @@ arrowhead mkarrowhead(arrowfun af, real minsize)
   return xhead;
 }
 
-path isa_af(pair b, pair e)
+restricted path isa_af(pair b, pair e)
 {
   pair A = b + rotate(90)*Tan(30)*(e-b);
   pair B = b + rotate(-90)*Tan(30)*(e-b);
   return A--B--e--cycle;  
 }
 
-path hasa_af(pair b, pair e)
+restricted path hasa_af(pair b, pair e)
 {
   pair A = (b+e)/2 + rotate(90)*Tan(30)*((e-b)/2);
   pair B = (b+e)/2 + rotate(-90)*Tan(30)*((e-b)/2);
@@ -65,48 +65,48 @@ path hasa_af(pair b, pair e)
   
 }
 
-arrowhead genhead = mkarrowhead(isa_af,18bp);
-arrowhead comhead = mkarrowhead(hasa_af,18bp);
+restricted arrowhead genhead = mkarrowhead(isa_af,18bp);
+restricted arrowhead comhead = mkarrowhead(hasa_af,18bp);
 
 struct lstyle
 {
-  pen p = defaultpen;
-  arrowbar arrow = None; 
+  public pen p = defaultpen;
+  public arrowbar arrow = None; 
 }
 
 
 
-lstyle association;
-lstyle ass = association;
+restricted lstyle association;
+restricted lstyle ass = association;
 
-lstyle dependency;
+restricted lstyle dependency;
 dependency.arrow = EndArrow(SimpleHead,lstyle_setting.arrowsize);
 dependency.p = dashed;
-lstyle dep = dependency;
+restricted lstyle dep = dependency;
 
-lstyle generalization;
+restricted lstyle generalization;
 generalization.arrow = BeginArrow(genhead,FillDraw(white));
-lstyle gen = generalization;
+restricted lstyle gen = generalization;
 
-lstyle realization;
+restricted lstyle realization;
 realization.arrow = BeginArrow(genhead,FillDraw(white));
 realization.p = dashed;
-lstyle rea = realization;
+restricted lstyle rea = realization;
 
-lstyle composition;
+restricted lstyle composition;
 composition.arrow = BeginArrow(comhead,FillDraw(black));
-lstyle com = composition;
+restricted lstyle com = composition;
   
-lstyle aggregation;
+restricted lstyle aggregation;
 aggregation.arrow = BeginArrow(comhead,FillDraw(black));
-lstyle agg = aggregation;
+restricted lstyle agg = aggregation;
 
-lstyle dashline;
+restricted lstyle dashline;
 dashline.p = dashed;
 
 
 
-void req_i(picture pic =currentpicture,
+restricted void req_i(picture pic =currentpicture,
 	   path g,
 	   pen p,
 	   arrowbar arrow=None)
