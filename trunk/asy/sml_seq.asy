@@ -13,8 +13,8 @@ T_SEQ_SETTING seq_setting;
 
 struct seqrow
 {
-  real high = 0.0;
-  void fit(real h)
+  restricted real high = 0.0;
+  restricted void fit(real h)
   {
     if(high < h)
       this.high = h;
@@ -23,11 +23,18 @@ struct seqrow
 
 struct seqcol
 {
-  struct status
+  private struct status
   {
-    bool isactive = false;
-    int actlevel = 0;    
-    status clone()
+    restricted bool isactive = false;
+    restricted int actlevel = 0;
+
+    restricted void operator init(bool isactive, int actlevel)
+    {
+      this.isactive = isactive;
+      this.actlevel = actlevel;
+    }
+    
+    restricted status clone()
     {
       status ret;
       ret.isactive = this.isactive;
@@ -35,7 +42,7 @@ struct seqcol
       return ret;
     }
 
-    void inc(bool onleft)
+    restricted void inc(bool onleft)
     {
       if(! this.isactive){
 	this.isactive = true;
@@ -53,7 +60,7 @@ struct seqcol
       }      
     }
     
-    void dec()
+    restricted void dec()
     {
       if( !this.isactive )
 	abort("Error: Can not decrease on inactive status.");
@@ -68,7 +75,7 @@ struct seqcol
       }	
     }
 
-    real offset(bool onleft)
+    restricted real offset(bool onleft)
     {
       if( !this.isactive){
 	return 0.0;
@@ -82,24 +89,25 @@ struct seqcol
       return  seq_setting.act_width*nlevel;           
     }
   }
-  status sstack[] = new status[]{};
-  bool keepact = false;
-  real width;
-  object head;
+  restricted status sstack[] = new status[]{};
+  restricted bool keepact = false;
+  restricted real width;
+  restricted object head;
 
-  void operator init(object head, bool keepact)
+  restricted void operator init(object head, bool keepact)
   {
     this.head = head;
     this.keepact = keepact;
-    status sts = new status;    
+    status sts = null;    
     if(keepact){
-      sts.isactive = true;
-      sts.actlevel = 0;
-    }
+      sts = status(true,0);     
+    } else{
+      sts = status(false,0);
+    }      
     this.sstack.push(sts);        
   }
 
-  void pull2row(int row)
+  restricted void pull2row(int row)
   {
     int n = this.sstack.length;
     if( n >= row)
@@ -112,23 +120,23 @@ struct seqcol
     }	
   }
 
-  real leftoffset()
+  restricted real leftoffset()
   {
     return sstack[sstack.length -1].offset(true);    
   }
   
-  real rightoffset()
+  restricted real rightoffset()
   {
     return sstack[sstack.length -1].offset(false);    
   }  
   
-  real actleft()
+  restricted real actleft()
   {
     sstack[sstack.length -1].inc(true);
     return leftoffset();
   }
   
-  real actright()
+  restricted real actright()
   {
     sstack[sstack.length -1].inc(false);
     return this.rightoffset();
@@ -137,8 +145,19 @@ struct seqcol
 
 struct seqmsg
 {
-  seqrow beginrow = null;
-  seqrow endrow = null;
+  //begin  message type enum
+  static restricted int ASY = 1;
+  static restricted int SYS = 2;
+  static restricted int RET = 3; 
+  //end message type enum
+  
+  restricted seqrow beginrow = null;
+  restricted seqrow endrow = null;
+  restricted seqcol begincol = null;
+  restricted seqcol endcol = null;
+  restricted string label ="";
+  int type = 0; 
+  
   // XX here  wait to hack 
     
     

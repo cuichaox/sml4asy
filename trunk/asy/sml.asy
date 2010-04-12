@@ -12,22 +12,22 @@ lstyle_setting.iballsize = symbol_setting.iballsize;
 
 struct linker
 {
-  symbol src = null;
-  symbol to = null;
-  path g = nullpath;
-  arrowbar arrow = None; 
-  pen p = defaultpen;
+  restricted symbol src = null;
+  restricted symbol to = null;
+  restricted path g = nullpath;
+  restricted arrowbar arrow = None; 
+  restricted pen p = defaultpen;
   
 
-  pair srcSdir;
-  pair srcLdir;
-  pair destSdir;
-  pair destLdir;
-  pair srcPoint;
-  pair destPoint;
+  restricted pair srcSdir;
+  restricted pair srcLdir;
+  restricted pair destSdir;
+  restricted pair destLdir;
+  restricted pair srcPoint;
+  restricted pair destPoint;
 
 
-  void ldf (picture pic =currentpicture,
+  public void ldf (picture pic =currentpicture,
 	    path g,
 	    pen p,
 	    arrowbar arrow=None)
@@ -35,7 +35,7 @@ struct linker
     draw(pic,g,p,arrow);
   }
   
-  void operator init(symbol src, symbol dest,path g)
+  restricted void operator init(symbol src, symbol dest,path g)
   {
     this.src = src;
     this.to = to;
@@ -61,26 +61,26 @@ struct linker
     this.g = subpath(this.g,T1[1],T2[1]);
   }
 
-  linker style(lstyle lst)
+  restricted linker style(lstyle lst)
   {
     this.arrow = lst.arrow;   
     this.p = lst.p;
     return this;
   }
 
-  linker style(linker_drawer ldf)
+  restricted linker style(linker_drawer ldf)
   {
     this.ldf = ldf;
     return this;
   }
 
-  linker draw(picture pic = currentpicture)
+  restricted  linker draw(picture pic = currentpicture)
   {
     this.ldf(pic,this.g,this.p,this.arrow);
     return this; 
   }
 
-  linker sl(picture pic = currentpicture,
+  restricted linker sl(picture pic = currentpicture,
 	    string l)
   {
     object obj = Label(l);
@@ -92,7 +92,7 @@ struct linker
     return this;    
   }
 
-  linker ml(picture pic = currentpicture,
+  restricted linker ml(picture pic = currentpicture,
 	    string l, bool stero = true)
   {
     if(stero)
@@ -108,7 +108,7 @@ struct linker
  
 
 
-  linker dl(picture pic = currentpicture,
+  restricted linker dl(picture pic = currentpicture,
 	    string l)
   {
     object obj = Label(l);
@@ -122,7 +122,7 @@ struct linker
   
 }
 
-void draw(picture pic = currentpicture,linker l)
+restricted void draw(picture pic = currentpicture,linker l)
 {
   l.draw(pic);
 }
@@ -130,17 +130,17 @@ void draw(picture pic = currentpicture,linker l)
 
 struct pending_linker
 {
-  symbol src = null;
-  guide g = nullpath;
-  hold h = null;
-  void operator init(symbol s)
+  public symbol src = null;
+  public guide g = nullpath;
+  public hold h = null;
+  restricted void operator init(symbol s)
   {
     this.src = s;
     this.g = (s.min()+s.max())/2;
   }  
 }
 
-pending_linker copy(pending_linker plk)
+restricted pending_linker copy(pending_linker plk)
 {
   pending_linker ret;
   ret.src = plk.src;
@@ -149,13 +149,13 @@ pending_linker copy(pending_linker plk)
   return ret;    
 }
 
-pending_linker operator cast(symbol s)
+restricted pending_linker operator cast(symbol s)
 {
   return pending_linker(s);  
 }
 
 //begin pending_linker op guide
-pending_linker operator..(pending_linker pl,guide g)
+restricted pending_linker operator..(pending_linker pl,guide g)
 {  
   if(alias(pl.h,null)){
     pl.g = pl.g..g;    
@@ -166,7 +166,7 @@ pending_linker operator..(pending_linker pl,guide g)
   return pl;    
 }
 
-pending_linker operator::(pending_linker pl,guide g)
+restricted pending_linker operator::(pending_linker pl,guide g)
 {
   if(alias(pl.h,null)){
     pl.g = pl.g::g;    
@@ -177,7 +177,7 @@ pending_linker operator::(pending_linker pl,guide g)
   return pl;    
 }
 
-pending_linker operator--(pending_linker pl,guide g)
+restricted pending_linker operator--(pending_linker pl,guide g)
 {
   if(alias(pl.h,null)){
     pl.g = pl.g--g;    
@@ -188,7 +188,7 @@ pending_linker operator--(pending_linker pl,guide g)
   return pl;    
 }
 
-pending_linker operator---(pending_linker pl,guide g)
+restricted pending_linker operator---(pending_linker pl,guide g)
 {
   if(alias(pl.h,null)){
     pl.g = pl.g---g;    
@@ -201,7 +201,7 @@ pending_linker operator---(pending_linker pl,guide g)
 //end pending_linker op guide
 
 //beging pending_linker op plead
-pending_linker operator..(pending_linker plk,plead pld)
+restricted pending_linker operator..(pending_linker plk,plead pld)
 {
   if(!alias(plk.h,null)){
     abort("Can't Fllow a holding path with a plead.");
@@ -210,7 +210,7 @@ pending_linker operator..(pending_linker plk,plead pld)
   return plk;
 }
 
-pending_linker operator::(pending_linker plk,plead pld)
+restricted pending_linker operator::(pending_linker plk,plead pld)
 {
   if(!alias(plk.h,null)){
     abort("Can't Fllow a holding path with a plead.");
@@ -219,7 +219,7 @@ pending_linker operator::(pending_linker plk,plead pld)
   return plk;
 }
 
-pending_linker operator--(pending_linker plk,plead pld)
+restricted pending_linker operator--(pending_linker plk,plead pld)
 {
   if(!alias(plk.h,null)){
     abort("Can't Fllow a holding path with a plead.");
@@ -228,7 +228,7 @@ pending_linker operator--(pending_linker plk,plead pld)
   return plk;
 }
 
-pending_linker operator---(pending_linker plk,plead pld)
+restricted pending_linker operator---(pending_linker plk,plead pld)
 {
   if(!alias(plk.h,null)){
     abort("Can't Fllow a holding path with a plead.");
@@ -239,7 +239,7 @@ pending_linker operator---(pending_linker plk,plead pld)
 //end pending_linker op plead
 
 //begin pending_linker op mlead
-pending_linker operator ..(pending_linker plk,mlead mld)
+restricted pending_linker operator ..(pending_linker plk,mlead mld)
 {
   if(!alias(plk.h,null)){
     abort("Can't Fllow a holding path with a mlead.");
@@ -247,7 +247,7 @@ pending_linker operator ..(pending_linker plk,mlead mld)
   plk.h = plk.g ..mld;
   return plk;
 }
-pending_linker operator ::(pending_linker plk,mlead mld)
+restricted pending_linker operator ::(pending_linker plk,mlead mld)
 {
   if(!alias(plk.h,null)){
     abort("Can't Fllow a holding path with a mlead.");
@@ -256,7 +256,7 @@ pending_linker operator ::(pending_linker plk,mlead mld)
   return plk;
 }
 
-pending_linker operator --(pending_linker plk,mlead mld)
+restricted pending_linker operator --(pending_linker plk,mlead mld)
 {
   if(!alias(plk.h,null)){
     abort("Can't Fllow a holding path with a mlead.");
@@ -265,7 +265,7 @@ pending_linker operator --(pending_linker plk,mlead mld)
   return plk;
 }
 
-pending_linker operator ---(pending_linker plk,mlead mld)
+restricted pending_linker operator ---(pending_linker plk,mlead mld)
 {
   if(!alias(plk.h,null)){
     abort("Can't Fllow a holding path with a mlead.");
@@ -276,7 +276,7 @@ pending_linker operator ---(pending_linker plk,mlead mld)
 //end pending_linker op mlead
 
 //begin pending_linker op nlead
-pending_linker operator ..(pending_linker plk,nlead nld)
+restricted pending_linker operator ..(pending_linker plk,nlead nld)
 {
   if(alias(plk.h,null)){
     plk.h = plk.g ..nld;
@@ -285,7 +285,7 @@ pending_linker operator ..(pending_linker plk,nlead nld)
   }
   return plk;    
 }
-pending_linker operator ::(pending_linker plk,nlead nld)
+restricted pending_linker operator ::(pending_linker plk,nlead nld)
 {
   if(alias(plk.h,null)){
     plk.h = plk.g ::nld;
@@ -294,7 +294,7 @@ pending_linker operator ::(pending_linker plk,nlead nld)
   }
   return plk;    
 }
-pending_linker operator --(pending_linker plk,nlead nld)
+restricted pending_linker operator --(pending_linker plk,nlead nld)
 {
   if(alias(plk.h,null)){
     plk.h = plk.g --nld;
@@ -303,7 +303,7 @@ pending_linker operator --(pending_linker plk,nlead nld)
   }
   return plk;    
 }
-pending_linker operator ---(pending_linker plk,nlead nld)
+restricted pending_linker operator ---(pending_linker plk,nlead nld)
 {
   if(alias(plk.h,null)){
     plk.h = plk.g ---nld;
@@ -315,28 +315,28 @@ pending_linker operator ---(pending_linker plk,nlead nld)
 //end pending_linker op nlead
 
 //begin pending_linker op symbol
-linker operator ..(pending_linker plk, symbol s)
+restricted linker operator ..(pending_linker plk, symbol s)
 {
   pair z = (s.min() + s.max())/2;
   plk = plk .. z;
   return linker(plk.src,s,plk.g);  
 }
 
-linker operator ::(pending_linker plk, symbol s)
+restricted linker operator ::(pending_linker plk, symbol s)
 {
   pair z = (s.min() + s.max())/2;
   plk = plk :: z;
   return linker(plk.src,s,plk.g);  
 }
 
-linker operator --(pending_linker plk, symbol s)
+restricted linker operator --(pending_linker plk, symbol s)
 {
   pair z = (s.min() + s.max())/2;
   plk = plk -- z;
   return linker(plk.src,s,plk.g);  
 }
 
-linker operator ---(pending_linker plk, symbol s)
+restricted linker operator ---(pending_linker plk, symbol s)
 {
   pair z = (s.min() + s.max())/2;
   plk = plk --- z;
@@ -347,13 +347,13 @@ linker operator ---(pending_linker plk, symbol s)
 
 struct mlinker
 {
-  linker[] linkers;
-  void operator init(linker[] ls)
+  restricted linker[] linkers;
+  restricted void operator init(linker[] ls)
   {
     this.linkers = ls;
   }
   
-  mlinker style(lstyle lst)
+  restricted mlinker style(lstyle lst)
   {
     int n = linkers.length;
     for(int i =0; i<n; ++i)
@@ -361,7 +361,7 @@ struct mlinker
     return this;
   }
 
-  mlinker draw(picture pic = currentpicture)
+  restricted mlinker draw(picture pic = currentpicture)
   {
     int n = linkers.length;
     for(int i=0; i<n; ++i)
@@ -369,7 +369,7 @@ struct mlinker
     return this;
   }
 
-  mlinker sl(picture pic = currentpicture,
+  restricted mlinker sl(picture pic = currentpicture,
 	     string l)
   {
     int n = linkers.length;
@@ -378,7 +378,7 @@ struct mlinker
     return this;
   }
 
-  mlinker dl(picture pic = currentpicture,
+  restricted mlinker dl(picture pic = currentpicture,
 	     string l)
   {
     int n = linkers.length;
@@ -389,14 +389,14 @@ struct mlinker
 
 }
 
-void draw(picture pic = currentpicture,mlinker ml)
+restricted void draw(picture pic = currentpicture,mlinker ml)
 {
   ml.draw();
 }
 
 
 //begin pending_linker op symbol[]
-mlinker operator ..(pending_linker plk,symbol[] ss)
+restricted mlinker operator ..(pending_linker plk,symbol[] ss)
 {
   linker [] ls = new linker[]{};
   int n = ss.length;
@@ -408,7 +408,7 @@ mlinker operator ..(pending_linker plk,symbol[] ss)
   return mlinker(ls);
 }
 
-mlinker operator ::(pending_linker plk,symbol[] ss)
+restricted mlinker operator ::(pending_linker plk,symbol[] ss)
 {
   linker [] ls = new linker[]{};
   int n = ss.length;
@@ -420,7 +420,7 @@ mlinker operator ::(pending_linker plk,symbol[] ss)
   return mlinker(ls);
 }
 
-mlinker operator --(pending_linker plk,symbol[] ss)
+restricted  mlinker operator --(pending_linker plk,symbol[] ss)
 {
   linker [] ls = new linker[]{};
   int n = ss.length;
@@ -432,7 +432,7 @@ mlinker operator --(pending_linker plk,symbol[] ss)
   return mlinker(ls);
 }
 
-mlinker operator ---(pending_linker plk,symbol[] ss)
+restricted  mlinker operator ---(pending_linker plk,symbol[] ss)
 {
   linker [] ls = new linker[]{};
   int n = ss.length;

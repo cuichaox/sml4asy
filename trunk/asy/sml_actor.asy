@@ -75,7 +75,7 @@ private real randx(real begin,real end)
 srand(seconds());
 
 //create a actor by name 
-path[] rand_actor()
+restricted path[] rand_actor()
 {  
   pair p1 = (randx(0.6,1),randx(pi/4,pi*3/4));
   pair p2 = (randx(0.8,1),randx(pi/4,pi*3/4));
@@ -98,7 +98,7 @@ path[] rand_actor()
   
 }
 
-path[] normal_actor()
+restricted path[] normal_actor()
 {
   pair[] p = new pair[] {(0.8,pi/2),  //body
 			 (0.8,pi/2),  //head

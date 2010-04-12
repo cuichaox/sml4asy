@@ -9,33 +9,33 @@ typedef pair dfun(pair f,pair t,real [] para);
 
 struct plead
 {
-  real [] para;
-  sfun sf;
-  void operator init(sfun sf ...real [] para){
+  restricted real [] para;
+  restricted sfun sf;
+  restricted void operator init(sfun sf ...real [] para){
     this.para = copy(para);    
     this.sf =sf;
   }
-  pair cal(pair p){
+  restricted pair cal(pair p){
     return sf(p,para);
   }  
 }
 
-guide operator..(guide g,plead l)
+restricted guide operator..(guide g,plead l)
 {  
   return g..l.cal(point(g,length(g)));
 }
 
-guide operator::(guide g,plead l)
+restricted guide operator::(guide g,plead l)
 { 
   return g::l.cal(point(g,length(g)));
 }
 
-guide operator--(guide g,plead l)
+restricted guide operator--(guide g,plead l)
 {  
   return g--l.cal(point(g,length(g)));  
 }
 
-guide operator---(guide g,plead l)
+restricted guide operator---(guide g,plead l)
 { 
   return g---l.cal(point(g,length(g)));
 }
@@ -43,7 +43,7 @@ guide operator---(guide g,plead l)
 
 struct hold
 {
-  guide cal(pair p)
+  public guide cal(pair p)
   {
     write("Warning: you should not call me . by hold.get()");
     return nullpath;
@@ -51,24 +51,24 @@ struct hold
 }
 struct mlead
 {
-  dfun df = null;
-  guide pg = nullpath;
-  real[] para = null;
-  interpolate op = null;
+  restricted dfun df = null;
+  restricted guide pg = nullpath;
+  restricted real[] para = null;
+  restricted interpolate op = null;
   
-  void operator init(dfun df ...real[] para)
+  restricted void operator init(dfun df ...real[] para)
   {
     this.op = op;
     this.df = df;
     this.para= copy(para);
   }
   
-  guide cal(pair p)
+  restricted guide cal(pair p)
   {
     return op(this.pg,df(point(pg,length(pg)),p,para));
   }
  
-  hold tohold(interpolate op,guide pg)
+  restricted hold tohold(interpolate op,guide pg)
   {
     this.pg = pg;
     this.op = op;
@@ -80,22 +80,22 @@ struct mlead
 
 struct nlead
 {
-  sfun sf = null;
-  guide pg = nullpath;
-  hold ph = null;
-  real[] para;
-  interpolate op;
-  void operator init(sfun sf ...real [] para){
+  restricted sfun sf = null;
+  restricted guide pg = nullpath;
+  restricted hold ph = null;
+  restricted real[] para;
+  restricted interpolate op;
+  restricted void operator init(sfun sf ...real [] para){
     this.sf =sf;
     this.para = copy(para);        
   }
 
-  void operator init(sfun sf ...real [] para){
+  restricted void operator init(sfun sf ...real [] para){
     this.sf =sf;
     this.para = copy(para);        
   }
   
-  guide cal(pair p)
+  restricted guide cal(pair p)
   {
     pair x = sf(p,para);
     
@@ -109,7 +109,7 @@ struct nlead
     return op(this.pg,x);    
   }
 
-  hold tohold(interpolate op,guide pg)
+  restricted hold tohold(interpolate op,guide pg)
   {
     this.pg = pg;
     this.op = op;
@@ -118,7 +118,7 @@ struct nlead
     return x;    
   }
   
-  hold tohold(interpolate op,hold ph)
+  restricted hold tohold(interpolate op,hold ph)
   {
     this.ph = ph;
     this.op = op;
@@ -128,95 +128,95 @@ struct nlead
   }
 }
 
-hold operator cast(nlead nl)
+restricted hold operator cast(nlead nl)
 {
   return nl.tohold(operator--,nullpath);
 }
  
 
 // begin guide op nlead
-hold operator..(guide g,nlead nl)
+restricted hold operator..(guide g,nlead nl)
 {
   return nl.tohold(operator..,g);
 }
 
-hold operator::(guide g, nlead nl)
+restricted hold operator::(guide g, nlead nl)
 {
   return nl.tohold(operator::,g);
 }
 
-hold operator--(guide g, nlead nl)
+restricted hold operator--(guide g, nlead nl)
 {
   return nl.tohold(operator--,g);
 }
 
-hold operator---(guide g, nlead nl)
+restricted hold operator---(guide g, nlead nl)
 {
   return nl.tohold(operator---,g);
 }
 //end guide op nlead
 
 //begin guide op mlead
-hold operator..(guide g,mlead ml)
+restricted hold operator..(guide g,mlead ml)
 {
   return ml.tohold(operator..,g);
 }
 
-hold operator::(guide g, mlead ml)
+restricted hold operator::(guide g, mlead ml)
 {
   return ml.tohold(operator::,g);
 }
 
-hold operator--(guide g, mlead ml)
+restricted hold operator--(guide g, mlead ml)
 {
   return ml.tohold(operator--,g);
 }
 
-hold operator---(guide g, mlead ml)
+restricted hold operator---(guide g, mlead ml)
 {
   return ml.tohold(operator---,g);
 }
 //end guide op mlead;
 
 //begin hold op nlead
-hold operator..(hold h,nlead nl)
+restricted hold operator..(hold h,nlead nl)
 {
   return nl.tohold(operator..,h);
 }
 
-hold operator::(hold h,nlead nl)
+restricted hold operator::(hold h,nlead nl)
 {
   return nl.tohold(operator::,h);
 }
 
-hold operator--(hold h,nlead nl)
+restricted hold operator--(hold h,nlead nl)
 {
   return nl.tohold(operator--,h);
 }
 
-hold operator---(hold h,nlead nl)
+restricted hold operator---(hold h,nlead nl)
 {
   return nl.tohold(operator---,h);
 }
 //end hold op mlead
 
 // begian hold op guide
-guide operator..(hold h,guide g)
+restricted guide operator..(hold h,guide g)
 {
   return h.cal(point(g,0))..g;
 }
 
-guide operator::(hold h,guide g)
+restricted guide operator::(hold h,guide g)
 {
   return h.cal(point(g,0))::g;
 }
 
-guide operator--(hold h,guide g)
+restricted guide operator--(hold h,guide g)
 {
   return h.cal(point(g,0))--g;
 }
 
-guide operator---(hold h,guide g)
+restricted guide operator---(hold h,guide g)
 {
   return h.cal(point(g,0))---g;
 }
@@ -255,53 +255,53 @@ private pair vfLpoint(pair f,pair t,real[] para)
 }
 
 // predefined lead
-plead pwalk(real x, real y)
+restricted plead pwalk(real x, real y)
 {
   return plead(rel,x,y);
 }
-plead pw(real x, real y) = pwalk;
+restricted plead pw(real x, real y) = pwalk;
 
-plead pxwalk(real x)
+restricted plead pxwalk(real x)
 {
   return pwalk(x,0);
 }
-plead pxw(real x) = pxwalk;
+restricted plead pxw(real x) = pxwalk;
 
-plead pywalk(real y)
+restricted plead pywalk(real y)
 {
   return pwalk(0,y);
 }
-plead pyw(real y) = pywalk;
+restricted plead pyw(real y) = pywalk;
 
-nlead nwalk(real x, real y)
+restricted nlead nwalk(real x, real y)
 {
   return nlead(rel,x,y);
 }
-nlead nw(real x, real y) = nwalk;
+restricted nlead nw(real x, real y) = nwalk;
 
-nlead nxwalk(real x)
+restricted nlead nxwalk(real x)
 {
   return nwalk(x,0);
 }
-nlead nxw(real x) = nxwalk;
+restricted nlead nxw(real x) = nxwalk;
 
-nlead nywalk(real y)
+restricted nlead nywalk(real y)
 {
   return nwalk(0,y);
 }
-nlead nyw(real y) = nywalk;
+restricted nlead nyw(real y) = nywalk;
 
-mlead leftside(real s = 12pt)
+restricted mlead leftside(real s = 12pt)
 {
   return mlead(lside,s);
 }
-mlead ls(real s) = leftside;
+restricted mlead ls(real s) = leftside;
 
-mlead leftside = leftside();
-mlead ls = leftside;
-mlead rightside = leftside(-12pt);
-mlead rs = rightside;
+restricted mlead leftside = leftside();
+restricted mlead ls = leftside;
+restricted mlead rightside = leftside(-12pt);
+restricted mlead rs = rightside;
 
-mlead hv = mlead(hfLpoint);
-mlead vh = mlead(vfLpoint);
+restricted mlead hv = mlead(hfLpoint);
+restricted mlead vh = mlead(vfLpoint);
 
