@@ -13,11 +13,41 @@ T_SEQ_SETTING seq_setting;
 
 struct seqrow
 {
-  restricted real high = 0.0;
+  restricted real high = seq_setting.min_xmatric;
+  private real pos = 0.0;
+  private bool placed = false;
+  restricted int n;
+
+  void  operator init(int n)
+  {
+    this.n = n;
+  }
+    
   restricted void fit(real h)
   {
     if(high < h)
       this.high = h;
+  }
+
+  restricted void place(real pos)
+  {
+    if(this.placed)
+      abort("Error: This row already placed.");
+    this.pos = pos;
+    this.placed = true;
+  }
+
+  void move2next()
+  {
+    ++this.n;
+  }
+
+  real getpos()
+  {
+    if(!this.placed){
+      abort("Error: This row is not placed.");
+    }
+    return this.pos;
   }
 }
 
@@ -63,13 +93,13 @@ struct seqcol
     restricted void dec()
     {
       if( !this.isactive )
-	abort("Error: Can not decrease on inactive status.");
+	  abort("Error: Can not decrease on inactive status.");
       if(this.actlevel > 0){
-	--this.actlevel;
+	  --this.actlevel;
       } else if( this.actlevel < 0){
-	++this.actlevel;
+	  ++this.actlevel;
       } else if( this.actlevel == 0){
-	this.isactive = false;
+	  this.isactive = false;
       } else{
 	abort("Error: invarint is broken this.actleve <0");
       }	
@@ -78,24 +108,33 @@ struct seqcol
     restricted real offset(bool onleft)
     {
       if( !this.isactive){
-	return 0.0;
+	  return 0.0;
       }
       int nlevel = this.actlevel;
       if(onleft){
-	--nlevel;
+	  --nlevel;
       }else{
-	++nlevel;
+	  ++nlevel;
       }
       return  seq_setting.act_width*nlevel;           
     }
   }
   restricted status sstack[] = new status[]{};
   restricted bool keepact = false;
-  restricted real width;
+  restricted real width = seq_setting. min_ymatric;
   restricted object head;
-
-  restricted void operator init(object head, bool keepact)
+  restricted int n;
+  restricted void fit(real w)
   {
+    if(this.width < w)
+      this.width = w;
+    return;
+    
+  }
+
+  restricted void operator init(object head, bool keepact, int n)
+  {
+    this.n = n;
     this.head = head;
     this.keepact = keepact;
     status sts = null;    
@@ -120,28 +159,54 @@ struct seqcol
     }	
   }
 
-  restricted real leftoffset()
+  restricted real leftoffset(int n)
   {
-    return sstack[sstack.length -1].offset(true);    
+    return sstack[n].offset(true);    
   }
   
-  restricted real rightoffset()
+  restricted real rightoffset(int n)
   {
-    return sstack[sstack.length -1].offset(false);    
+    return sstack[n].offset(false);    
   }  
   
-  restricted real actleft()
+  restricted real actleft(int n)
   {
-    sstack[sstack.length -1].inc(true);
-    return leftoffset();
+    if(n <sstack.length -1)
+      abort("Error: act on middle.");
+    this.pull2row(n);	
+    sstack[n].inc(true);
+    return leftoffset(n);
   }
   
-  restricted real actright()
+  restricted real actright(int n)
   {
-    sstack[sstack.length -1].inc(false);
-    return this.rightoffset();
-  } 
+    if(n <sstack.length -1)
+      abort("Error: act on middle.");
+    this.pull2row(n);
+    sstack[n].inc(false);
+    return this.rightoffset(n);
+  }
+
+  private real pos = 0.0;
+  private bool placed = false;
+
+  void place(real pos)
+  {
+    if(placed)
+      abort("Error: This collumn is already placed.");
+    this.placed = true;
+    this.pos = pos;
+  }
+
+  real getpos()
+  {
+    if(!placed){
+      abort("Error: This collum is not placed.");
+    }
+    return this.pos;
+  }
 }
+
 
 struct seqmsg
 {
@@ -151,70 +216,415 @@ struct seqmsg
   static restricted int RET = 3; 
   //end message type enum
   
+  restricted int type = SYS; 
   restricted seqrow beginrow = null;
   restricted seqrow endrow = null;
   restricted seqcol begincol = null;
   restricted seqcol endcol = null;
-  restricted string label ="";
-  int type = 0; 
+  restricted object name =null;  
+  restricted real beginoffset = 0.0;
+  restricted real endoffset = 0.0;
   
-  // XX here  wait to hack 
+  restricted string label = "";
     
+  restricted void operator init(int type,
+                                seqrow beginrow,
+                                seqrow endrow,
+                                seqcol begincol,
+                                seqcol endcol,
+                                object name,
+                                real beginoffset,
+                                real endoffset)
+  {
+    this.type = type;
+    this.beginrow = beginrow;
+    this.endrow = endrow;
+    this.begincol = begincol;
+    this.endcol = endcol;
+    this.name = name;
+    this.beginoffset = beginoffset;
+    this.endoffset =  endoffset;
+  }    
     
 }
 
 struct seqrim
-{
+{    
+  restricted seqrow beginrow = null;
+  restricted seqrow endrow = null;
+  restricted seqcol begincol = null;
+  restricted seqcol endcol = null;
+  restricted string name;
+  restricted string beginlabel;
+
+  restricted seqrow[] sprow = new seqrow[]{};
+  restricted string[] splabel = new string[]{};
   
+  restricted bool pending()
+  {
+    if(endrow == null)
+      return true;
+    else
+      return false;
+  }
+  
+  restricted void operator init(seqrow beginrow,
+				seqcol begincol,
+				string name ,
+				string beginlabel)
+  {
+    this.beginrow = beginrow;
+    this.begincol = begincol;
+    this.endcol = begincol;
+    this.name = name;
+    this.beginlabel = beginlabel;
+  }
+
+  restricted void spline(seqrow row,
+			 string label)
+  {
+    if(!alias(this.endrow,null))
+      abort("Error: this rim is alreay closed");    
+    this.sprow.push(row);
+    this.splabel.push(label);
+  }
+
+  restricted void end(seqrow row)
+  {
+    if(!alias(this.endrow,null))
+      abort("Error: this rim is alreay closed");
+    this.endrow = row;
+  }
+ 
 }
 
 struct seqdia
 {
   struct contex
   {
-    
+    public seqcol[] calstack = new seqcol[]{};
+    public seqrim[] rimstack = new seqrim[]{};
+    public seqrow currow = null;
+
+    restricted seqcol ctop()
+    {
+      if(this.calstack.length == 0){
+	abort("Error: call stack is empty.");
+      }	
+      return this.calstack[this.calstack.length -1];
+    }
+    restricted seqcol cpop()
+    {
+      if(this.calstack.length == 0){
+	abort("Error: call stack underfllow");
+      }
+      return this.calstack.pop();
+    }           
+    restricted seqrim rtop()
+    {
+      if(this.rimstack.length == 0){
+	abort("Error: rim stack is empty.");
+      }
+      return this.rimstack[this.rimstack.length -1];      
+    }
+    restricted seqrim rpop()
+    {
+      if(this.rimstack.length == 0){
+	abort("Error rim stack unserfllow.");
+      }
+      return this.rimstack.pop();      
+    }       
+  };
+  public contex ctx = new contex;
+  public seqrow[] rows = new seqrow[]{};
+  public seqcol[] cols = new seqcol[]{};
+  restricted void fit(seqcol bcol, seqcol ecol,real w)
+  {
+    seqcol col1 = bcol;
+    seqcol col2 = ecol;
+    if(bcol.n > ecol.n){
+      col1 = ecol;
+      col2 = bcol;
+    }else if(bcol.n == ecol.n){
+      bcol.fit(w);
+      return;
+    }
+    real tw =0.0;
+    for( int i = bcol.n; i<ecol.n; ++i){
+      tw += this.cols[i].width;
+    }
+    if(tw < w){
+      return;
+    }
+    real lw = (tw-w)+col1.width;
+    col1.fit(lw);      
   }
-}
+  public seqrim[] rims = new seqrim[]{};
+  public seqmsg[] msgs = new seqmsg[]{};
 
+  restricted bool autoret;
+  restricted void operator init(bool autoret)
+  {
+    this.autoret = autoret;
+  }
 
-void asymsg()
-{
+  restricted seqrow appendrow()
+  {
+    int n = this.rows.length;
+    seqrow ret = seqrow(n);
+    this.rows.push(ret);
+    return ret;
+  }
+   
+  restricted seqrow nextrow()
+  {
+    if(this.ctx.currow.n < this.rows.length -1){
+      return this.rows[this.ctx.currow.n +1];
+    }
+    else if(this.ctx.currow.n == (this.rows.length -1)){
+      seqrow ret = seqrow(this.ctx.currow.n +1);
+      this.rows.push(ret);
+      this.ctx.currow = ret;
+      return ret;
+    }
+    abort("Error: current row is out of range.");
+    return null;
+  }
   
 }
 
-void synmsg()
+private seqdia curdia = null;
+
+restricted void begindia(bool autoret = true)
 {
+  curdia = seqdia(autoret);
+}
+
+private void assert_begin(string who)
+{
+  if(alias(curdia,null)){
+    abort("Error: ["+who+"] Call begindia first, please.");    
+  }   
+}
+
+
+restricted void enddia()
+{
+  assert_begin("enddia");
+  // wait to hack  
+}
+
+restricted void pushcol(object head,bool keepact)
+{
+  assert_begin("pushcol");
+  int n = curdia.cols.length;
+  seqcol newcol = seqcol(head,keepact,n);
+  curdia.cols.push(newcol);
   
 }
 
-seqcol newmsg()
+restricted void retmsg(string label = "",
+		       bool draw = true,
+		       real during = 0.0)
 {
+  assert_begin("retmsg");
+  if(curdia.ctx.calstack.length < 2){
+    abort("Error: can't retrun. Call stack underflow.");
+  }
+  
+  if(curdia.rows.length < 1){
+    abort("Error: can't retrun on zero row.");
+  }
+  seqcol bcol = curdia.ctx.cpop();
+  seqcol ecol = curdia.ctx.ctop();
+
+  seqrow prow = curdia.ctx.currow;
+  seqrow brow = curdia.nextrow();
+  seqrow erow = brow;
+  prow.fit(during);
+  if(during != 0.0 || alias(bcol,ecol)){
+    erow = curdia.nextrow();    
+  }
+
+  object lab = null;
+  if(draw && length(label) > 0){
+    lab = object(label);
+    pair t = max(lab) - min(lab);
+    curdia.fit(bcol,ecol,t.x);
+    prow.fit(during + t.y);
+  }
+  bcol.pull2row(brow.n);
+  bcol.sstack[brow.n].dec();
+  ecol.pull2row(erow.n);
+
+  if(!draw)
+    return;
+     
+  real boff = 0.0;  
+  real eoff = 0.0;
+  if(bcol.n < ecol.n){
+    boff = bcol.rightoffset(brow.n);
+    eoff = ecol.leftoffset(erow.n);
+  }else if(bcol.n == ecol.n){
+    boff = bcol.rightoffset(brow.n);
+    eoff = ecol.rightoffset(erow.n);
+  }else{
+    boff = bcol.leftoffset(brow.n);
+    eoff = ecol.rightoffset(erow.n);
+  }  
+  
+  seqmsg msg = seqmsg(seqmsg.RET,
+		      brow,
+		      erow,
+		      bcol,
+		      ecol,
+		      lab,
+		      boff,
+		      eoff);
+  curdia.msgs.push(msg);
+}
+
+restricted  void asymsg(string name = "",
+			seqcol bcol,
+			seqcol ecol,
+			real during = 0.0,
+			bool nextrow = true)
+{
+  assert_begin("asymsg");
+ 
+  while(curdia.ctx.calstack.length >=1
+	&& !alias(bcol,curdia.ctx.ctop())){
+    retmsg(curdia.autoret);    
+  } 
+
+  object xname = object(name);
+  pair xs = max(xname) - min(xname);
+  curdia.fit(bcol,ecol,xs.x);
+  
+  seqrow brow = curdia.ctx.currow;
+  brow.fit(xs.y);
+  if(nextrow){
+    brow = curdia.nextrow();
+  }
+  seqrow erow = brow;
+  if(during > 0.0){
+    erow = curdia.nextrow();
+    brow.fit(brow.high + during);
+  }
+  bcol.pull2row(brow.n);  
+  ecol.pull2row(erow.n);
+
+  real boff = 0.0;
+  real eoff = 0.0;
+  if(bcol.n < ecol.n){
+    boff = bcol.rightoffset(brow.n);
+    eoff = ecol.leftoffset(erow.n);
+  }else if(bcol.n == ecol.n){
+    boff = bcol.rightoffset(brow.n);
+    eoff = ecol.rightoffset(erow.n);
+  }else{
+    boff = bcol.leftoffset(brow.n);
+    eoff = ecol.rightoffset(erow.n);
+  }
+  seqmsg msg = seqmsg(seqmsg.ASY,
+		      brow,
+		      erow,
+		      bcol,
+		      ecol,
+		      xname,
+		      boff,
+		      eoff);
+  curdia.msgs.push(msg);  
+}
+
+restricted void synmsg(string name = "",
+		       seqcol bcol,
+		       seqcol ecol,
+		       real during =0.0)
+{
+  assert_begin("synmsg");
+  if(curdia.ctx.calstack.length ==0){
+    curdia.ctx.calstack.push(bcol);
+  }    
+  while(curdia.ctx.calstack.length >=1
+	&& !alias(bcol,curdia.ctx.ctop())){
+    retmsg(curdia.autoret);    
+  }
+  if((curdia.ctx.calstack.length ==0)){
+    abort("Error: the begin col is not on stack: "+ name);
+  }
+  curdia.ctx.calstack.push(ecol);
+    
+  object xname = object(name);
+  pair xs = max(xname) - min(xname);
+  curdia.fit(bcol,ecol,xs.x);
+  curdia.ctx.currow.fit(xs.y);
+
+  seqrow brow = curdia.nextrow();
+  seqrow erow = brow;
+  if(during >0.0){
+    erow = curdia.nextrow();
+    brow.fit(brow.high + during);
+  }
+  
+  bcol.pull2row(brow.n);  
+  ecol.pull2row(erow.n);
+  real boff = 0.0;
+  real eoff = 0.0;
+  if(bcol.n < ecol.n){
+    boff = bcol.rightoffset(brow.n);
+    eoff = ecol.actleft(erow.n);
+  }else if(bcol.n == ecol.n){
+    boff = bcol.rightoffset(brow.n);
+    eoff = ecol.actright(erow.n);
+  }else{
+    boff = bcol.leftoffset(brow.n);
+    eoff = ecol.actright(erow.n);
+  }
+
+  seqmsg msg = seqmsg(seqmsg.SYS,
+		      brow,
+		      erow,
+		      bcol,
+		      ecol,
+		      xname,
+		      boff,
+		      eoff);
+  curdia.msgs.push(msg);    
+}
+
+restricted seqcol newmsg(string name,
+			 string head,
+			 bool keepact)
+{
+  assert_begin("newmsg");
+  // wait to hack
   seqcol ret;
   return ret;
 }
 
-void retmsg()
+ 
+restricted void beginrim()
 {
+  assert_begin("beginrim");
   
 }
 
-void beginrim()
+restricted void sprim()
 {
+  assert_begin("sprim");
   
 }
 
-void sprim()
+restricted void endrim()
 {
+  assert_begin("endrim");
   
 }
 
-void endrim()
+restricted void endseq()
 {
-  
-}
-
-void endseq()
-{
+  assert_begin("endseq");
   
 }
   
