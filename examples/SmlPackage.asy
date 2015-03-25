@@ -6,7 +6,7 @@ symbol ld = mkpack(hdock(4bp,
 			 mkbox("nlead")),"lead");
 
 symbol ln = mknote("A smart way to specify line between symbols, "
-		   "I like this ideal");
+		   "I like this idea");
 
 symbol paks=  mkpack(hdock(4bp,TOE,
 			   mkpack(mkpack("actor"),
