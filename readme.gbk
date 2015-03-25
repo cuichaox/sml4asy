@@ -1,7 +1,0 @@
-安装方法:
-把所有的asy文件("asy/*.asy"), 拷贝到任意Asympote将会搜索系统文件的目录中.
-你可以使用下面的语句给asympote添加一个新的搜索路径:
-     setting.dir += "<new path>";
-为了避免每个新文件中都写这个语句，把这个语句添加到配置文件中: 
-"$HOME/.asy/config.asy".
-

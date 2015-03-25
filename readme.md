@@ -1,10 +1,10 @@
-INSTALL:
-Copy "asy/*.asy" to a directory that Asympote will search for system files.
-You can add a new search path for Asympote by fllowing statement.
-    	setting.dir += "<new path>";
-Once for All Time, add this statement to the "$HOME/.asy/config.asy".
+Introduce
+===
+Sml4asy is a module for Asympote. Make UML diagram quickly from script.
 
-Quote:
+INSTALL
+===
+Copy "asy/*.asy" to a directory that Asympote will search for system files.
 Asympote will search the folloing paths, in the order listed.
 1. The current directory;
 2. A list of one or more directories specified by the configuration 
@@ -14,4 +14,11 @@ Asympote will search the folloing paths, in the order listed.
    directory (%USERPROFILE%\.asy under  MSDOS) is used;
 4. The Asymptote system directory (by default, /usr/local/share/asymptote
    under UNIX and C:\Program Files\Asymptote under MSDOS).
+
+Examples
+===
+Run `asy examples/*.asy` to building examples.
+See  examples/*.pdf.
+
+
 
