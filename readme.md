@@ -20,5 +20,16 @@ Examples
 Run `asy examples/*.asy` to building examples.
 See  examples/*.pdf.
 
+>Source: [HelloSML.asy](https://github.com/cuichaox/sml4asy/blob/master/examples/HelloSML.asy)
+>Result: [HelloSML.pdf](https://github.com/cuichaox/sml4asy/blob/master/examples/HelloSML.pdf)
+
+>Source: [Component.asy](https://github.com/cuichaox/sml4asy/blob/master/examples/Component.asy)
+>Result: [Component.pdf](https://github.com/cuichaox/sml4asy/blob/master/examples/Component.pdf)
+
+>Source: [CompositeParnttern.asy](https://github.com/cuichaox/sml4asy/blob/master/examples/CompositeParnttern.asy)
+>Result: [CompositeParnttern.pdf](https://github.com/cuichaox/sml4asy/blob/master/examples/CompositeParnttern.pdf)
+
+>Source: [SmlPackage.asy](https://github.com/cuichaox/sml4asy/blob/master/examples/SmlPackage.asy)
+>Result: [SmlPackage.pdf](https://github.com/cuichaox/sml4asy/blob/master/examples/SmlPackage.pdf)
 
 
